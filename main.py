@@ -14,9 +14,9 @@ from settings import BLACK
 from random import randint
 from sprites import *
 from sprites import Wall
+from sprites import Coin
 import sys
 from os import path
-
 # creating the game blueprint
 class Game:
     # Initializer -- info about the game
@@ -41,12 +41,15 @@ class Game:
             for line in f:
                 print(line)
                 self.map_data.append(line)
-    # Game loop -- runs our game
-                
+    # Game loop -- runs our game    
     def new(self):
             print("create new game...")
             self.all_sprites = pg.sprite.Group()
             self.walls = pg.sprite.Group()
+            self.all_sprites = pg.sprite.Group()
+            self.coins = pg.sprite.Group()
+            self.mobs = pg.sprite.Group()
+            self.power_ups = pg.sprite.Group()
             # self.player1 = Player(self, 1, 1)
             # for x in range(10, 20):
             #     Wall(self, x, 5)
@@ -59,8 +62,10 @@ class Game:
                         Wall(self, col, row)
                     if tile == 'P':
                         self.player = Player(self, col, row)
-
-
+                    if tile == 'C':
+                        Coin(self, col, row)
+                if tile == 'M':
+                        Mob(self, col, row)
     def run(self):
             # game loop - set self.playing = False to end the game
             self.playing = True
@@ -69,6 +74,7 @@ class Game:
                 self.events()
                 self.update()
                 self.draw()
+                
     def quit(self):
             pg.quit()
             sys.exit()
@@ -76,7 +82,7 @@ class Game:
     def update(self):
             # update portion of the game loop
             self.all_sprites.update()
-        
+
     def draw_grid(self):
             for x in range(0, WIDTH, TILESIZE):
                 pg.draw.line(self.screen, LIGHTGREY, (x, 0), (x, HEIGHT))
@@ -87,8 +93,6 @@ class Game:
             self.screen.fill(BGCOLOR)
             self.draw_grid()
             self.all_sprites.draw(self.screen)
-            # self.draw_text(self.screen, "Hello world", 42, BLACK, 2, 2)
-            self.draw_text(self.screen, str(self.dt), 42, BLACK, 1, 1)
             pg.display.flip()
 
     def events(self):
@@ -107,17 +111,7 @@ class Game:
                 #           self.player.move(dy=1)
                 #     if event.key == pg.K_ESCAPE:
                 #         self.quit()
-
-    def draw_text(self, surface, text, size, color, x, y):
-            font_name = pg.font.match_font('arial')
-            font = pg.font.Font(font_name, size)
-            text_surface = font.render(text, True, color)
-            text_rect = text_surface.get_rect()
-            text_rect.topleft = (x*TILESIZE,y*TILESIZE)
-            surface.blit(text_surface, text_rect)
-
-    #>>>>>>>>>>>>>>>>>>>>>OUTPUT<<<<<<<<<<<<<<<<<<<<
-    
+                    
 g = Game()
 # g.show_start_screen()
 while True:
