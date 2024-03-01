@@ -15,8 +15,19 @@ from random import randint
 from sprites import *
 from sprites import Wall
 from sprites import Coin
+from sprites import PowerUp
+from sprites import Mob
 import sys
 from os import path
+'''
+game design truths:
+goals, rules, feedback, freedom, what the verb, and will it form a sentence
+
+game reset/menu screen
+moving screen
+projectiles
+
+'''
 # creating the game blueprint
 class Game:
     # Initializer -- info about the game
@@ -64,7 +75,7 @@ class Game:
                         self.player = Player(self, col, row)
                     if tile == 'C':
                         Coin(self, col, row)
-                if tile == 'M':
+                    if tile == 'M':
                         Mob(self, col, row)
     def run(self):
             # game loop - set self.playing = False to end the game
