@@ -1,4 +1,5 @@
 # This file was created by Jude Hammers
+# Inspired by and referenced from code by Chris Bradfield, Chat GPT, and 
 
 # import modules
 import pygame as pg
@@ -23,7 +24,7 @@ from os import path
 game design truths:
 goals, rules, feedback, freedom, what the verb, and will it form a sentence
 
-game reset/menu screen
+game menu screen
 power ups
 health bar
 
@@ -133,14 +134,13 @@ class Game:
                     
     def show_start_screen(self):
          self.screen.fill(BGCOLOR)
-         self.draw_text(self.screen, "Press any button to start game", 48, WHITE, WIDTH/4.3, HEIGHT/2.2)
-         def draw_text(self, surface, text, size, color, x, y):
-            font = pg.font.Font(None, size)
-            text_surface = font.render(text, True, color)
-            text_rect = text_surface.get_rect(center=(x, y))
-            surface.blit(text_surface, text_rect)
+         self.draw_text(self.screen, "Press any button to start game", 48, BLUE, WIDTH/4.3, HEIGHT/2.2)
          pg.display.flip()
          self.wait_for_key()
+
+    def show_power_up(self):
+         if coin_hits:
+            self.draw_text(self.screen, "Power Up!", 24, BLUE, WIDTH/4.3, HEIGHT/4)
 
     def wait_for_key(self):
          waiting =  True
@@ -152,7 +152,6 @@ class Game:
                         self.quit()
                     if event.type == pg.KEYUP:
                         waiting = False
-                   
 
 g = Game()
 g.show_start_screen()

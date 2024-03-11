@@ -75,10 +75,12 @@ class Player(pg.sprite.Sprite):
         # add collision later
         self.collide_with_walls('y')
         self.collide_with_group(self.game.coins, True)
-          
-        # coin_hits = pg.sprite.spritecollide(self.game.coins, True)
-        # if coin_hits:
-        #     print("I got a coin")
+        coin_hits = pg.sprite.spritecollide(self.game.coins, True)
+        if coin_hits:
+            self.draw_text(self.screen, "Power Up!", 24, BLUE, WIDTH/4.3, HEIGHT/4)
+            print("Power Up!")
+        if coin_hits:
+            PLAYER_SPEED = 600
         
 
 
