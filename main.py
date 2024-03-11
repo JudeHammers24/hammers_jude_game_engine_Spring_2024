@@ -133,7 +133,7 @@ class Game:
                     
     def show_start_screen(self):
          self.screen.fill(BGCOLOR)
-         self.draw_text(self.screen, "Press any button to start game", 48, WHITE, WIDTH/3.3, HEIGHT/2.1)
+         self.draw_text(self.screen, "Press any button to start game", 48, WHITE, WIDTH/4.3, HEIGHT/2.2)
          def draw_text(self, surface, text, size, color, x, y):
             font = pg.font.Font(None, size)
             text_surface = font.render(text, True, color)
