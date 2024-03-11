@@ -24,8 +24,8 @@ game design truths:
 goals, rules, feedback, freedom, what the verb, and will it form a sentence
 
 game reset/menu screen
-moving screen
-projectiles
+power ups
+health bar
 
 '''
 # creating the game blueprint
@@ -133,7 +133,12 @@ class Game:
                     
     def show_start_screen(self):
          self.screen.fill(BGCOLOR)
-         self.draw_text(self.screen, "This is the start screen", 24, WHITE, WIDTH/2 - 32, 2)
+         self.draw_text(self.screen, "Press any button to start game", 48, WHITE, WIDTH/3.3, HEIGHT/2.1)
+         def draw_text(self, surface, text, size, color, x, y):
+            font = pg.font.Font(None, size)
+            text_surface = font.render(text, True, color)
+            text_rect = text_surface.get_rect(center=(x, y))
+            surface.blit(text_surface, text_rect)
          pg.display.flip()
          self.wait_for_key()
 
