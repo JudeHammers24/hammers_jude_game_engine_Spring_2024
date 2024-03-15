@@ -1,5 +1,5 @@
 # This file was created by Jude Hammers
-# Inspired by and referenced from code by Chris Bradfield, Chat GPT, and 
+# Inspired by and referenced from code by Chris Bradfield, Chat GPT, and Pacman 
 
 # import modules
 import pygame as pg
@@ -17,7 +17,8 @@ from sprites import *
 from sprites import Wall
 from sprites import Coin
 from sprites import PowerUp
-from sprites import Mob
+from sprites import Mob2
+from sprites import Player
 import sys
 from os import path
 '''
@@ -77,7 +78,7 @@ class Game:
                     if tile == 'C':
                         Coin(self, col, row)
                     if tile == 'M':
-                        Mob(self, col, row)
+                        Mob2(self, col, row)
     def run(self):
             # game loop - set self.playing = False to end the game
             self.playing = True
@@ -138,9 +139,6 @@ class Game:
          pg.display.flip()
          self.wait_for_key()
 
-    def show_power_up(self):
-         if coin_hits:
-            self.draw_text(self.screen, "Power Up!", 24, BLUE, WIDTH/4.3, HEIGHT/4)
 
     def wait_for_key(self):
          waiting =  True
