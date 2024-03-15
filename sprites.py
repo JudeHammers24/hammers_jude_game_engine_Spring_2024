@@ -18,7 +18,9 @@ class Player(pg.sprite.Sprite):
     def __init__(self, game, x, y):
         self.game = game
         self.groups = game.all_sprites
-        self.speed = PLAYER_SPEED
+        self.speed = 0
+        self.max_speed = 200
+        self.power_up_multiplier = 4
         # initializes the player class
         pg.sprite.Sprite.__init__(self, self.groups)
         # init super class
@@ -63,9 +65,22 @@ class Player(pg.sprite.Sprite):
     def collide_with_group(self, group, kill):
         hits = pg.sprite.spritecollide(self, group, kill)
         if hits:
-            if str(hits[0].__class__.__name__) == "Coin":
-                # self.moneybag += 1
-                self.speed += 200
+            for hit in hits:
+                if isinstance(hit, Coin):  # Assuming Coin is the class name for power-up items
+                    # Apply power-up effects
+                    self.apply_power_up()
+
+    def apply_power_up(self):
+        # Increase speed by a fraction (multiplier) while respecting cap
+        self.speed *= self.power_up_multiplier
+        self.speed = min(self.speed, self.max_speed)
+
+        # hits = pg.sprite.spritecollide(self, group, kill)
+        # if hits:
+        #     if str(hits[0].__class__.__name__) == "Coin":
+        #         # self.moneybag += 1
+        #         self.speed += 200
+
     def update(self):
         self.get_keys()
         self.x += self.vx * self.game.dt
@@ -77,6 +92,8 @@ class Player(pg.sprite.Sprite):
         # add collision later
         self.collide_with_walls('y')
         self.collide_with_group(self.game.coins, True)
+        if self.power_up_active:
+            self.apply_power_up()
         
 
 
