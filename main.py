@@ -30,6 +30,7 @@ power ups
 health bar
 
 '''
+
 # creating the game blueprint
 class Game:
     # Initializer -- info about the game
@@ -38,6 +39,8 @@ class Game:
         pg.init()
         # settings
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))
+        self.background_image = pg.image.load("pcbg.jpg")
+        self.background_image = pg.transform.scale(self.background_image, (WIDTH, HEIGHT))
         pg.display.set_caption(TITLE)
         # Setting up pygame clock
         self.clock = pg.time.Clock()
@@ -95,6 +98,12 @@ class Game:
     def update(self):
             # update portion of the game loop
             self.all_sprites.update()
+    
+    def draw(self):
+            self.screen.blit(self.background_image, (0, 0))
+            self.draw_grid()
+            self.all_sprites.draw(self.screen)
+            pg.display.flip()
 
     def draw_grid(self):
             for x in range(0, WIDTH, TILESIZE):
@@ -110,11 +119,6 @@ class Game:
          text_rect.topleft = (x,y)
          surface.blit(text_surface, text_rect)
 
-    def draw(self):
-            self.screen.fill(BGCOLOR)
-            self.draw_grid()
-            self.all_sprites.draw(self.screen)
-            pg.display.flip()
 
     def events(self):
             # catch all events here
