@@ -16,6 +16,7 @@ TILESIZE = 32
 WIDTH = 1024
 HEIGHT = 768
 FPS = 60
-TITLE = "Tilemap Demo"
+TITLE = "Arcade Mania"
 PLAYER_SPEED = 200
-
+rotation_angle = 0
+rotation_speed = 2
