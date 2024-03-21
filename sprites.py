@@ -8,9 +8,11 @@ from settings import GREEN
 from settings import BROWN
 from settings import YELLOW
 from settings import PLAYER_SPEED
+from settings import BGCOLOR
 vec =pg.math.Vector2
 # allows us to use pygame
 # imports game settings
+
 
 # player class
 class Player(pg.sprite.Sprite):
@@ -148,6 +150,18 @@ class Player(pg.sprite.Sprite):
             if hits:
                 self.apply_power_up
                 hits[0].kill()
+
+    def show_start_screen(self):
+         self.screen.fill(BGCOLOR)
+         self.draw_text(self.screen, "Press any button to start game", 48, BLUE, WIDTH/4.3, HEIGHT/2.2)
+         pg.display.flip()
+         self.wait_for_key()
+    
+    def collide_with_groups(self, dir):
+        if dir == 'x':
+            hits = pg.sprite.spritecollide(self, self.game.mobs, False)
+            if hits:
+                self.draw_text(self.screen, "Press any button to restart game", 48, BLUE, WIDTH/4.3, HEIGHT/2.2)
 
 
 class Wall(pg.sprite.Sprite):
