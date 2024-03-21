@@ -19,7 +19,7 @@ class Player(pg.sprite.Sprite):
         self.game = game
         self.groups = game.all_sprites
         self.speed = 0
-        self.max_speed = 200
+        self.max_speed = 600
         self.power_up_multiplier = 4
         # initializes the player class
         pg.sprite.Sprite.__init__(self, self.groups)
@@ -62,18 +62,20 @@ class Player(pg.sprite.Sprite):
     #             return True
     #     return False
     
-    def collide_with_group(self, group, kill):
-        hits = pg.sprite.spritecollide(self, group, kill)
-        if hits:
-            for hit in hits:
-                if isinstance(hit, Coin):  # Assuming Coin is the class name for power-up items
-                    # Apply power-up effects
-                    self.apply_power_up()
-
     def apply_power_up(self):
-        # Increase speed by a fraction (multiplier) while respecting cap
+        # Increase speed by a fraction
         self.speed *= self.power_up_multiplier
         self.speed = min(self.speed, self.max_speed)
+    
+    # def collide_with_group(self, group, kill):
+    #     hits = pg.sprite.spritecollide(self, group, kill)
+    #     if hits:
+    #         for hit in hits:
+    #             if isinstance(hit, Coin):  # Assuming Coin is the class name for power-up items
+    #                 # Apply power-up effects
+    #                 self.apply_power_up()
+
+
 
         # hits = pg.sprite.spritecollide(self, group, kill)
         # if hits:
@@ -86,16 +88,25 @@ class Player(pg.sprite.Sprite):
         self.x += self.vx * self.game.dt
         self.y += self.vy * self.game.dt
         self.rect.x = self.x
-        # add collision later
         self.collide_with_walls('x')
         self.rect.y = self.y
-        # add collision later
         self.collide_with_walls('y')
+        self.rect.x = self.x
+        self.collide_with_groups('x')
+        self.rect.y = self.y
+        self.collide_with_groups('y')
         self.collide_with_group(self.game.coins, True)
         if self.power_up_active:
             self.apply_power_up()
-        
+        self.rect.x = self.x
+        self.collide_with_groups('x')
+        self.rect.y = self.y
+        self.collide_with_groups('y')
+        self.collide_with_group(self.game.mobs, True)
+        if self.collide_with_groups(self.game.mobs, True):
+            self.kill
 
+        
 
     def collide_with_walls(self, dir):
         if dir == 'x':
@@ -127,8 +138,17 @@ class Player(pg.sprite.Sprite):
         # add collision later
         self.collide_with_walls('y')
         # wall class
-        self.collide_with_group(self.game.coins, True)
-        # coin class
+        # self.collide_with_groups(self.game.coins, True)
+        # # coin class
+        # self.collide_with_groups(self.game.mobs, True)
+    
+    def collide_with_groups(self, dir):
+        if dir == 'x':
+            hits = pg.sprite.spritecollide(self, self.game.coins, False)
+            if hits:
+                self.apply_power_up
+                hits[0].kill()
+
 
 class Wall(pg.sprite.Sprite):
     def __init__(self, game, x, y):
@@ -244,7 +264,28 @@ class Mob2(pg.sprite.Sprite):
             # if self.health <= 0:
             #     self.kill()
 
-# class Mob(pg.sprite.Sprite):
+
+# if dir == 'x':
+#         hits = pg.sprite.spritecollide(sprite, group, False)
+#         if hits:
+#             if hits[0].rect.centerx > sprite.rect.centerx:
+#                 sprite.pos.x = hits[0].rect.left - sprite.rect.width / 2
+#             if hits[0].rect.centerx < sprite.rect.centerx:
+#                 sprite.pos.x = hits[0].rect.right + sprite.rect.width / 2
+#             sprite.vel.x = 0
+#             sprite.rect.centerx = sprite.pos.x
+#     if dir == 'y':
+#         hits = pg.sprite.spritecollide(sprite, group, False)
+#         if hits:
+#             if hits[0].rect.centery > sprite.rect.centery:
+#                 sprite.pos.y = hits[0].rect.top - sprite.rect.height / 2
+#             if hits[0].rect.centery < sprite.rect.centery:
+#                 sprite.pos.y = hits[0].rect.bottom + sprite.rect.height / 2
+#             sprite.vel.y = 0
+#             sprite.rect.centery = sprite.pos.y
+# # class Mob(pg.sprite.Sprite):
+    
+
 #     def __init__(self, game, x, y):
 #         self.groups = game.all_sprites, game.mobs
 #         pg.sprite.Sprite.__init__(self, self.groups)
