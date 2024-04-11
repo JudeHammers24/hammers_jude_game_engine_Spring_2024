@@ -35,55 +35,6 @@ class Player(pg.sprite.Sprite):
         self.x = x * TILESIZE
         self.y = y * TILESIZE
 
-    def get_keys(self):
-        self.vx, self.vy = 0, 0
-        keys = pg.key.get_pressed()
-        if keys[pg.K_LEFT] or keys[pg.K_a]:
-            self.vx = -PLAYER_SPEED
-        if keys[pg.K_RIGHT] or keys[pg.K_d]:
-            self.vx = PLAYER_SPEED  
-        if keys[pg.K_UP] or keys[pg.K_w]:
-            self.vy = -PLAYER_SPEED  
-        if keys[pg.K_DOWN] or keys[pg.K_s]:
-            self.vy = PLAYER_SPEED
-
-        # Normalize diagonal movement
-        if self.vx != 0 and self.vy != 0:
-            self.vx *= 0.7071  # roughly 1/sqrt(2)
-            self.vy *= 0.7071
-
-    
-    # def move(self, dx=0, dy=0):
-    #     if not self.collide_with_walls(dx, dy):
-    #         self.x += dx
-    #         self.y += dy
-
-    # def collide_with_walls(self, dx=0, dy=0):
-    #     for wall in self.game.walls:
-    #         if wall.x == self.x + dx and wall.y == self.y + dy:
-    #             return True
-    #     return False
-    
-    def apply_power_up(self):
-        # Increase speed by a fraction
-        self.speed *= self.power_up_multiplier
-        self.speed = min(self.speed, self.max_speed)
-    
-    # def collide_with_group(self, group, kill):
-    #     hits = pg.sprite.spritecollide(self, group, kill)
-    #     if hits:
-    #         for hit in hits:
-    #             if isinstance(hit, Coin):  # Assuming Coin is the class name for power-up items
-    #                 # Apply power-up effects
-    #                 self.apply_power_up()
-
-
-
-        # hits = pg.sprite.spritecollide(self, group, kill)
-        # if hits:
-        #     if str(hits[0].__class__.__name__) == "Coin":
-        #         # self.moneybag += 1
-        #         self.speed += 200
 
     def update(self):
         self.get_keys()
@@ -96,18 +47,48 @@ class Player(pg.sprite.Sprite):
         self.rect.x = self.x
         self.collide_with_groups('x')
         self.rect.y = self.y
-        self.collide_with_groups('y')
-        self.collide_with_group(self.game.coins, True)
-        if self.power_up_active:
-            self.apply_power_up()
-        self.rect.x = self.x
-        self.collide_with_groups('x')
-        self.rect.y = self.y
-        self.collide_with_groups('y')
-        self.collide_with_group(self.game.mobs, True)
-        if self.collide_with_groups(self.game.mobs, True):
-            self.kill
+        self.get_keys()
+        self.show_start_screen
 
+    def collide_with_groups(self, dir, screen):
+        if dir == 'x':
+            hits = pg.sprite.spritecollide(self, self.game.mobs, False)
+            if hits:
+                self.show_start_screen(screen)
+
+    def get_keys(self):
+        self.vx, self.vy = 0, 0
+        keys = pg.key.get_pressed()
+        if keys[pg.K_LEFT] or keys[pg.K_a]:
+            self.vx = -PLAYER_SPEED
+        if keys[pg.K_RIGHT] or keys[pg.K_d]:
+            self.vx = PLAYER_SPEED  
+        if keys[pg.K_UP] or keys[pg.K_w]:
+            self.vy = -PLAYER_SPEED  
+        if keys[pg.K_DOWN] or keys[pg.K_s]:
+            self.vy = PLAYER_SPEED
+        # Normalize diagonal movement
+        if self.vx != 0 and self.vy != 0:
+            self.vx *= 0.7071  # roughly 1/sqrt(2)
+            self.vy *= 0.7071
+        if self.rect.left <= 0 and self.vx < 0:
+            self.rect.right = WIDTH
+        elif self.rect.right >= WIDTH and self.vx > 0:
+            self.rect.left = 0
+
+    def apply_power_up(self):
+        # Increase speed by a fraction
+        self.speed *= self.power_up_multiplier
+        self.speed = min(self.speed, self.max_speed)
+    
+    def draw_text(self):
+        def draw_text(self, surface, text, size, color, x, y):
+         font_name = pg.font.match_font('arial')
+         font = pg.font.Font(font_name, size)
+         text_surface = font.render(text, True, color)
+         text_rect = text_surface.get_rect()
+         text_rect.topleft = (x,y)
+         surface.blit(text_surface, text_rect)
         
 
     def collide_with_walls(self, dir):
@@ -129,20 +110,21 @@ class Player(pg.sprite.Sprite):
                     self.y = hits[0].rect.bottom
                 self.vy = 0
                 self.rect.y = self.y
-    def update(self):
-        self.get_keys()
-        self.x += self.vx * self.game.dt
-        self.y += self.vy * self.game.dt
-        self.rect.x = self.x
-        # add collision later
-        self.collide_with_walls('x')
-        self.rect.y = self.y
-        # add collision later
-        self.collide_with_walls('y')
-        # wall class
-        # self.collide_with_groups(self.game.coins, True)
-        # # coin class
-        # self.collide_with_groups(self.game.mobs, True)
+        def update(self):
+            self.get_keys()
+            self.x += self.vx * self.game.dt
+            self.y += self.vy * self.game.dt
+            self.rect.x = self.x
+            # add collision later
+            self.collide_with_walls('x')
+            self.rect.y = self.y
+            # add collision later
+            self.collide_with_walls('y')
+            # wall class
+            # self.collide_with_groups(self.game.coins, True)
+            # # coin class
+            # self.collide_with_groups(self.game.mobs, True)
+            self.get_keys()
     
     def collide_with_groups(self, dir):
         if dir == 'x':
@@ -151,18 +133,12 @@ class Player(pg.sprite.Sprite):
                 self.apply_power_up
                 hits[0].kill()
 
-    def show_start_screen(self):
-         self.screen.fill(BGCOLOR)
-         self.draw_text(self.screen, "Press any button to start game", 48, BLUE, WIDTH/4.3, HEIGHT/2.2)
+    def show_start_screen(self, screen):
+         screen.fill(BGCOLOR)
+         self.draw_text(screen, "Press any button to start game", 48, BLUE, WIDTH/4.3, HEIGHT/2.2)
          pg.display.flip()
          self.wait_for_key()
     
-    def collide_with_groups(self, dir):
-        if dir == 'x':
-            hits = pg.sprite.spritecollide(self, self.game.mobs, False)
-            if hits:
-                self.draw_text(self.screen, "Press any button to restart game", 48, BLUE, WIDTH/4.3, HEIGHT/2.2)
-
 
 class Wall(pg.sprite.Sprite):
     def __init__(self, game, x, y):
