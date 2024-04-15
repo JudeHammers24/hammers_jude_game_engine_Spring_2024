@@ -1,7 +1,7 @@
 # This file was created by Jude Hammers
 # Inspired by and referenced from code by Chris Bradfield, Chat GPT, and Pacman 
 
-# import modules
+# all of these modules come from our other files including settings and sprites and allow our game to run in main
 import pygame as pg
 from settings import *
 from settings import TITLE
@@ -15,19 +15,22 @@ from settings import BLACK
 from random import randint
 from sprites import *
 from sprites import Wall
-from sprites import Coin
+# from sprites import Coin
 from sprites import PowerUp
 from sprites import Mob2
 from sprites import Player
 import sys
 from os import path
+
 '''
 game design truths:
 goals, rules, feedback, freedom, what the verb, and will it form a sentence
 
 game menu screen
 power ups
-health bar
+end game after collision with mob (death)
+
+beta: add a mob final boss fight
 
 '''
 
@@ -37,15 +40,22 @@ class Game:
     def __init__(self):
         # initializes pygame
         pg.init()
-        # settings
+        # these lines of code set the game screen including factors such as width and height
+        # width and height are created in settings and imported here
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))
         self.background_image = pg.image.load("pcbg.jpg")
+        # this line allows us to import our pacman image as our game background
         self.background_image = pg.transform.scale(self.background_image, (WIDTH, HEIGHT))
         pg.display.set_caption(TITLE)
-        # Setting up pygame clock
+        # this line allows us to set a base time for the game to run on
         self.clock = pg.time.Clock()
         self.load_data()
+    def update(self):
+        # Update portion of the game loop
+            self.all_sprites.update()
+            
     def load_data(self):
+        #  this allows us to implement our map base from map.txt
          game_folder = path.dirname(__file__)
          self.map_data = []
          '''
@@ -60,15 +70,19 @@ class Game:
     # Game loop -- runs our game    
     def new(self):
             print("create new game...")
+            # these are importing all of our sprites included in our game
+            # sprites are used as items/mobs/players/factors of the game
             self.all_sprites = pg.sprite.Group()
             self.walls = pg.sprite.Group()
             self.all_sprites = pg.sprite.Group()
-            self.coins = pg.sprite.Group()
+            # self.coins = pg.sprite.Group()
             self.mobs = pg.sprite.Group()
             self.power_ups = pg.sprite.Group()
             # self.player1 = Player(self, 1, 1)
             # for x in range(10, 20):
             #     Wall(self, x, 5)
+            # below here are the implementations of our map tiles such as 1, p, c, and m which stand for
+            # wall, player, coin, and mob
             for row, tiles in enumerate(self.map_data):
                 print(row)
                 for col, tile in enumerate(tiles):
@@ -79,7 +93,7 @@ class Game:
                     if tile == 'P':
                         self.player = Player(self, col, row)
                     if tile == 'C':
-                        Coin(self, col, row)
+                        PowerUp(self, col, row)
                     if tile == 'M':
                         Mob2(self, col, row)
     def run(self):
@@ -87,17 +101,20 @@ class Game:
             self.playing = True
             while self.playing:
                 self.dt = self.clock.tick(FPS) / 1000
+                # this sets the clock and fps for our game
                 self.events()
-                self.update()
+                # this implements every event for our games
+                self.update(screen)
                 self.draw()
                 
     def quit(self):
             pg.quit()
             sys.exit()
 
-    def update(self):
-            # update portion of the game loop
-            self.all_sprites.update()
+    def update(self, screen):
+        # update portion of the game loop
+        self.all_sprites.update()
+
     
     def draw(self):
             self.screen.blit(self.background_image, (0, 0))
@@ -154,6 +171,8 @@ class Game:
                         self.quit()
                     if event.type == pg.KEYUP:
                         waiting = False
+
+screen = pg.display.set_mode((WIDTH, HEIGHT))
 
 g = Game()
 g.show_start_screen()
