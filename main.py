@@ -50,9 +50,6 @@ class Game:
         # this line allows us to set a base time for the game to run on
         self.clock = pg.time.Clock()
         self.load_data()
-    def update(self):
-        # Update portion of the game loop
-            self.all_sprites.update()
             
     def load_data(self):
         #  this allows us to implement our map base from map.txt
@@ -114,6 +111,14 @@ class Game:
     def update(self, screen):
         # update portion of the game loop
         self.all_sprites.update()
+        if pg.sprite.spritecollideany(self.player, self.mobs):
+            self.screen.fill(BGCOLOR)
+            self.draw_text(self.screen, "You lose. Game over bum.", 48, BLUE, WIDTH/4.3, HEIGHT/2.2)
+            pg.display.flip()
+            self.wait_for_key()
+        running = False  # Or handle player death differently
+        
+    
 
     
     def draw(self):
