@@ -117,9 +117,6 @@ class Game:
             pg.display.flip()
             self.wait_for_key()
         running = False  # Or handle player death differently
-        
-    
-
     
     def draw(self):
             self.screen.blit(self.background_image, (0, 0))

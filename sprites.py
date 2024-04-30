@@ -44,11 +44,9 @@ class Player(pg.sprite.Sprite):
         self.collide_with_walls('x')
         self.rect.y = self.y
         self.collide_with_walls('y')
-        self.rect.x = self.x
         self.collide_with_groups('x')
-        self.rect.y = self.y
-        self.get_keys()
-        self.show_start_screen
+        self.collide_with_groups('y')
+
 
     def collide_with_groups(self, dir, screen):
         if dir == 'x':
@@ -71,11 +69,28 @@ class Player(pg.sprite.Sprite):
         if self.vx != 0 and self.vy != 0:
             self.vx *= 0.7071  # roughly 1/sqrt(2)
             self.vy *= 0.7071
-        if self.rect.left <= 0 and self.vx < 0:
-            self.rect.right = WIDTH  # Wrap to the right side of the screen
-        elif self.rect.right >= WIDTH and -self.vx > 0:
-            self.rect.left = 0  # Wrap to the left side of the screen
+        
+        self.x += self.vx * self.game.dt
+        self.y += self.vy * self.game.dt
 
+        self.x = self.rect.x
+        self.y = self.rect.y
+
+        # screen wrapping
+        screen_width = self.game.screen.get_width()
+        if self.rect.left < 0:
+            self.rect.right = screen_width
+        elif self.rect.right > screen_width:
+            self.rect.left = 0
+        
+        self.x = self.rect.x
+
+        if self.rect.top < 0:
+            self.rect.top = 0
+        elif self.rect.bottom > HEIGHT:  # assuming HEIGHT is the height of your game screen
+            self.rect.bottom = HEIGHT
+
+        self.y = self.rect.y
 
 
     def apply_power_up(self):
@@ -83,8 +98,8 @@ class Player(pg.sprite.Sprite):
         self.speed *= self.power_up_multiplier
         self.speed = min(self.speed, self.max_speed)
     
-    def draw_text(self):
-        def draw_text(self, surface, text, size, color, x, y):
+   
+    def draw_text(self, surface, text, size, color, x, y):
          font_name = pg.font.match_font('arial')
          font = pg.font.Font(font_name, size)
          text_surface = font.render(text, True, color)
@@ -112,32 +127,21 @@ class Player(pg.sprite.Sprite):
                     self.y = hits[0].rect.bottom
                 self.vy = 0
                 self.rect.y = self.y
-        def update(self):
-            self.get_keys()
-            self.x += self.vx * self.game.dt
-            self.y += self.vy * self.game.dt
-            self.rect.x = self.x
-            # add collision later
-            self.collide_with_walls('x')
-            self.rect.y = self.y
-            # add collision later
-            self.collide_with_walls('y')
-            self.collide_with_groups('x')
-            self.collide_with_groups('y')
-            self.show_start_screen(self.game.screen)
+        
+            
     
     def collide_with_groups(self, dir):
         if dir == 'x':
             hits = pg.sprite.spritecollide(self, self.game.power_ups, False)
             if hits:
-                self.apply_power_up
+                self.apply_power_up()
                 hits[0].kill()
 
-    def show_start_screen(self, screen):
-         screen.fill(BGCOLOR)
-         self.draw_text(screen, "Press any button to start game", 48, BLUE, WIDTH/4.3, HEIGHT/2.2)
-         pg.display.flip()
-         self.wait_for_key()
+    # def show_start_screen(self, screen):
+    #      screen.fill(BGCOLOR)
+    #      self.draw_text(screen, "Press any button to start game", 48, BLUE, WIDTH/4.3, HEIGHT/2.2)
+    #      pg.display.flip()
+    #      self.wait_for_key()
     
 
 class Wall(pg.sprite.Sprite):
