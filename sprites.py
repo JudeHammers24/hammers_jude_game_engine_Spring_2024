@@ -70,34 +70,47 @@ class Player(pg.sprite.Sprite):
             self.vx *= 0.7071  # roughly 1/sqrt(2)
             self.vy *= 0.7071
     
-    def check_internal_wall_collisions(self):
-        # Check for collisions with internal walls within the game border
-        internal_wall_collisions = pg.sprite.spritecollide(self, self.game.walls, False)
-        print("Number of internal wall collisions:", len(internal_wall_collisions))
-        return len(internal_wall_collisions) > 0
+
 
     def update(self):
         self.get_keys()
+
+        def collide_with_walls(self, dir):
+            if dir == 'x':
+                hits = pg.sprite.spritecollide(self, self.game.walls, False)
+                if hits:
+                    if self.vx > 0:
+                        self.x = hits[0].rect.left - self.rect.width
+                    if self.vx < 0:
+                        self.x = hits[0].rect.right
+                    self.vx = 0
+                    self.rect.x = self.x
+            if dir == 'y':
+                hits = pg.sprite.spritecollide(self, self.game.walls, False)
+                if hits:
+                    if self.vy > 0:
+                        self.y = hits[0].rect.top - self.rect.height
+                    if self.vy < 0:
+                        self.y = hits[0].rect.bottom
+                    self.vy = 0
+                    self.rect.y = self.y
+
         
         # Update player's position based on velocity and time
         self.rect.x += self.vx * self.game.dt
         self.rect.y += self.vy * self.game.dt
-
-        # Wrap player around the screen if no collisions with internal walls
-        if not self.check_internal_wall_collisions():
-            screen_width = self.game.screen.get_width()
-            screen_height = self.game.screen.get_height()
             
-            if self.rect.right < 0:  # If player moves off the left side of the screen
-                self.rect.left = screen_width  # Move player to the right side
-            elif self.rect.left > screen_width:  # If player moves off the right side of the screen
-                self.rect.right = 0  # Move player to the left side
+        if self.rect.right < 0:  # If player moves off the left side of the screen
+            self.rect.left = WIDTH  # Move player to the right side
+        elif self.rect.left > WIDTH:  # If player moves off the right side of the screen
+            self.rect.right = 0  # Move player to the left side
 
-            if self.rect.bottom < 0:  # If player moves off the top of the screen
-                self.rect.top = screen_height  # Move player to the bottom
-            elif self.rect.top > screen_height:  # If player moves off the bottom of the screen
-                self.rect.bottom = 0  # Move player to the top
+        if self.rect.bottom < 0:  # If player moves off the top of the screen
+            self.rect.top = HEIGHT  # Move player to the bottom
+        elif self.rect.top > HEIGHT:  # If player moves off the bottom of the screen
+            self.rect.bottom = 0  # Move player to the top
 
+        
     def apply_power_up(self):
         # Increase speed by a fraction
         self.speed *= self.power_up_multiplier
@@ -113,25 +126,6 @@ class Player(pg.sprite.Sprite):
          surface.blit(text_surface, text_rect)
         
 
-    def collide_with_walls(self, dir):
-        if dir == 'x':
-            hits = pg.sprite.spritecollide(self, self.game.walls, False)
-            if hits:
-                if self.vx > 0:
-                    self.x = hits[0].rect.left - self.rect.width
-                if self.vx < 0:
-                    self.x = hits[0].rect.right
-                self.vx = 0
-                self.rect.x = self.x
-        if dir == 'y':
-            hits = pg.sprite.spritecollide(self, self.game.walls, False)
-            if hits:
-                if self.vy > 0:
-                    self.y = hits[0].rect.top - self.rect.height
-                if self.vy < 0:
-                    self.y = hits[0].rect.bottom
-                self.vy = 0
-                self.rect.y = self.y
         
             
     
