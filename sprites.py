@@ -69,29 +69,34 @@ class Player(pg.sprite.Sprite):
         if self.vx != 0 and self.vy != 0:
             self.vx *= 0.7071  # roughly 1/sqrt(2)
             self.vy *= 0.7071
+    
+    def check_internal_wall_collisions(self):
+        # Check for collisions with internal walls within the game border
+        internal_wall_collisions = pg.sprite.spritecollide(self, self.game.walls, False)
+        print("Number of internal wall collisions:", len(internal_wall_collisions))
+        return len(internal_wall_collisions) > 0
+
+    def update(self):
+        self.get_keys()
         
-        self.x += self.vx * self.game.dt
-        self.y += self.vy * self.game.dt
+        # Update player's position based on velocity and time
+        self.rect.x += self.vx * self.game.dt
+        self.rect.y += self.vy * self.game.dt
 
-        self.x = self.rect.x
-        self.y = self.rect.y
+        # Wrap player around the screen if no collisions with internal walls
+        if not self.check_internal_wall_collisions():
+            screen_width = self.game.screen.get_width()
+            screen_height = self.game.screen.get_height()
+            
+            if self.rect.right < 0:  # If player moves off the left side of the screen
+                self.rect.left = screen_width  # Move player to the right side
+            elif self.rect.left > screen_width:  # If player moves off the right side of the screen
+                self.rect.right = 0  # Move player to the left side
 
-        # screen wrapping
-        screen_width = self.game.screen.get_width()
-        if self.rect.left < 0:
-            self.rect.right = screen_width
-        elif self.rect.right > screen_width:
-            self.rect.left = 0
-        
-        self.x = self.rect.x
-
-        if self.rect.top < 0:
-            self.rect.top = 0
-        elif self.rect.bottom > HEIGHT:  # assuming HEIGHT is the height of your game screen
-            self.rect.bottom = HEIGHT
-
-        self.y = self.rect.y
-
+            if self.rect.bottom < 0:  # If player moves off the top of the screen
+                self.rect.top = screen_height  # Move player to the bottom
+            elif self.rect.top > screen_height:  # If player moves off the bottom of the screen
+                self.rect.bottom = 0  # Move player to the top
 
     def apply_power_up(self):
         # Increase speed by a fraction
@@ -244,3 +249,16 @@ class Mob2(pg.sprite.Sprite):
             # self.rect.center = self.hit_rect.center
             # if self.health <= 0:
             #     self.kill()
+
+class Homer(pg.sprite.Sprite):
+    def __init__(self, game, x, y):
+        self.groups = game.all_sprites, game.power_ups
+        pg.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        # Load the image for Homer
+        self.image = pg.image.load("savemejebus.png").convert_alpha()  
+        self.rect = self.image.get_rect()
+        self.x = x
+        self.y = y
+        self.rect.x = x * TILESIZE
+        self.rect.y = y * TILESIZE

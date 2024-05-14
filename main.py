@@ -1,184 +1,128 @@
-# This file was created by Jude Hammers
-# Inspired by and referenced from code by Chris Bradfield, Chat GPT, and Pacman 
-
-# all of these modules come from our other files including settings and sprites and allow our game to run in main
 import pygame as pg
 from settings import *
-from settings import TITLE
-from settings import TILESIZE
-from settings import BROWN
-from settings import GREEN
-from settings import LIGHTGREY
-from settings import BGCOLOR
-from settings import BLUE
-from settings import BLACK
+from settings import TITLE, TILESIZE, BROWN, GREEN, LIGHTGREY, BGCOLOR, BLUE, BLACK
 from random import randint
 from sprites import *
-from sprites import Wall
-# from sprites import Coin
-from sprites import PowerUp
-from sprites import Mob2
-from sprites import Player
+from sprites import Wall, PowerUp, Mob2, Player
 import sys
 from os import path
 
-'''
-game design truths:
-goals, rules, feedback, freedom, what the verb, and will it form a sentence
+# initial game goals: death after mob collision, start screen, speed power up
+# beta goal: player reflection across screens like in pacman
+# final goal: player score + "save the hostage" game feature
 
-game menu screen
-power ups
-end game after collision with mob (death)
-
-beta: add a mob final boss fight
-
-'''
-
-# creating the game blueprint
+# class definition for the game
 class Game:
-    # Initializer -- info about the game
     def __init__(self):
-        # initializes pygame
-        pg.init()
-        # these lines of code set the game screen including factors such as width and height
-        # width and height are created in settings and imported here
+        pg.init()  # initialize pygame
+        # set up the game window with width and height defined in settings
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))
+        # load and scale background image
         self.background_image = pg.image.load("pcbg.jpg")
-        # this line allows us to import our pacman image as our game background
         self.background_image = pg.transform.scale(self.background_image, (WIDTH, HEIGHT))
-        pg.display.set_caption(TITLE)
-        # this line allows us to set a base time for the game to run on
-        self.clock = pg.time.Clock()
-        self.load_data()
-            
-    def load_data(self):
-        #  this allows us to implement our map base from map.txt
-         game_folder = path.dirname(__file__)
-         self.map_data = []
-         '''
-        The with statement is a context manager in Python. 
-        It is used to ensure that a resource is properly closed or released 
-        after it is used. This can help to prevent errors and leaks.
-        '''
-         with open(path.join(game_folder, 'map.txt'), 'rt') as f:
-            for line in f:
-                print(line)
-                self.map_data.append(line)
-    # Game loop -- runs our game    
-    def new(self):
-            print("create new game...")
-            # these are importing all of our sprites included in our game
-            # sprites are used as items/mobs/players/factors of the game
-            self.all_sprites = pg.sprite.Group()
-            self.walls = pg.sprite.Group()
-            self.all_sprites = pg.sprite.Group()
-            # self.coins = pg.sprite.Group()
-            self.mobs = pg.sprite.Group()
-            self.power_ups = pg.sprite.Group()
-            # self.player1 = Player(self, 1, 1)
-            # for x in range(10, 20):
-            #     Wall(self, x, 5)
-            # below here are the implementations of our map tiles such as 1, p, c, and m which stand for
-            # wall, player, coin, and mob
-            for row, tiles in enumerate(self.map_data):
-                print(row)
-                for col, tile in enumerate(tiles):
-                    print(col)
-                    if tile == '1':
-                        print("a wall at", row, col)
-                        Wall(self, col, row)
-                    if tile == 'P':
-                        self.player = Player(self, col, row)
-                    if tile == 'C':
-                        PowerUp(self, col, row)
-                    if tile == 'M':
-                        Mob2(self, col, row)
-    def run(self):
-            # game loop - set self.playing = False to end the game
-            self.playing = True
-            while self.playing:
-                self.dt = self.clock.tick(FPS) / 1000
-                # this sets the clock and fps for our game
-                self.events()
-                # this implements every event for our games
-                self.update(screen)
-                self.draw()
-                
-    def quit(self):
-            pg.quit()
-            sys.exit()
+        pg.display.set_caption(TITLE)  # name the game title
+        self.clock = pg.time.Clock()  # create a clock object to manage frame rate
+        self.load_data()  # load game data from files on surface
 
-    def update(self, screen):
-        # update portion of the game loop
+    def load_data(self):
+        # load map data from the map.txt text file
+        game_folder = path.dirname(__file__)
+        self.map_data = []
+        with open(path.join(game_folder, 'map.txt'), 'rt') as f:
+            for line in f:
+                self.map_data.append(line)
+
+    def new(self):
+        # set up a new game, creating sprites and groups
+        self.all_sprites = pg.sprite.Group()
+        self.walls = pg.sprite.Group()
+        self.mobs = pg.sprite.Group()
+        self.power_ups = pg.sprite.Group()
+        # parse the map data
+        for row, tiles in enumerate(self.map_data):
+            for col, tile in enumerate(tiles):
+                if tile == '1':
+                    Wall(self, col, row)  # place wall
+                elif tile == 'P':
+                    self.player = Player(self, col, row)  # create player
+                elif tile == 'C':
+                    PowerUp(self, col, row)  # place power-up
+                elif tile == 'M':
+                    Mob2(self, col, row)  # place mob
+                elif tile == 'H':
+                    (self, col, row) # place homer   
+    def run(self):
+        # game loop
+        self.playing = True
+        while self.playing:
+            self.dt = self.clock.tick(FPS) / 1000  # manage game time
+            self.events()  # process game events
+            self.update()  # update game 
+            self.draw()  # draw the game
+
+    def quit(self):
+        pg.quit()
+        sys.exit()
+
+    def update(self):
+        # update all sprites
         self.all_sprites.update()
+        # check for collisions between the player and any mobs
         if pg.sprite.spritecollideany(self.player, self.mobs):
-            self.screen.fill(BGCOLOR)
-            self.draw_text(self.screen, "You lose. Game over bum.", 48, BLUE, WIDTH/4.3, HEIGHT/2.2)
-            pg.display.flip()
-            self.wait_for_key()
-        running = False  # Or handle player death differently
-    
+            self.playing = False  # end game on collision
+
     def draw(self):
-            self.screen.blit(self.background_image, (0, 0))
-            self.draw_grid()
-            self.all_sprites.draw(self.screen)
-            pg.display.flip()
+        # draw the background and all sprites
+        self.screen.blit(self.background_image, (0, 0))
+        self.draw_grid()
+        self.all_sprites.draw(self.screen)
+        pg.display.flip()  # update the display
 
     def draw_grid(self):
-            for x in range(0, WIDTH, TILESIZE):
-                pg.draw.line(self.screen, LIGHTGREY, (x, 0), (x, HEIGHT))
-            for y in range(0, HEIGHT, TILESIZE):
-                pg.draw.line(self.screen, LIGHTGREY, (0, y), (WIDTH, y))
+        # draw a grid over the game window
+        for x in range(0, WIDTH, TILESIZE):
+            pg.draw.line(self.screen, LIGHTGREY, (x, 0), (x, HEIGHT))
+        for y in range(0, HEIGHT, TILESIZE):
+            pg.draw.line(self.screen, LIGHTGREY, (0, y), (WIDTH, y))
 
     def draw_text(self, surface, text, size, color, x, y):
-         font_name = pg.font.match_font('arial')
-         font = pg.font.Font(font_name, size)
-         text_surface = font.render(text, True, color)
-         text_rect = text_surface.get_rect()
-         text_rect.topleft = (x,y)
-         surface.blit(text_surface, text_rect)
-
+        # utility function to draw text on the screen
+        font_name = pg.font.match_font('arial')
+        font = pg.font.Font(font_name, size)
+        text_surface = font.render(text, True, color)
+        text_rect = text_surface.get_rect()
+        text_rect.topleft = (x, y)
+        surface.blit(text_surface, text_rect)
 
     def events(self):
-            # catch all events here
-            for event in pg.event.get():
-                if event.type == pg.QUIT:
-                    self.quit()
-                # if event.type == pg.KEYDOWN:
-                #     if event.key == pg.K_A:
-                #           self.player.move(dx=-1)
-                #     if event.key == pg.K_D:
-                #           self.player.move(dx=1)
-                #     if event.key == pg.K_W:
-                #           self.player.move(dy=-1)
-                #     if event.key == pg.K_S:
-                #           self.player.move(dy=1)
-                #     if event.key == pg.K_ESCAPE:
-                #         self.quit()
-                    
-    def show_start_screen(self):
-         self.screen.fill(BGCOLOR)
-         self.draw_text(self.screen, "Press any button to start game", 48, BLUE, WIDTH/4.3, HEIGHT/2.2)
-         pg.display.flip()
-         self.wait_for_key()
+        # handle all events from the user and system
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                self.quit()
 
+    def show_start_screen(self):
+        # display the start screen
+        self.screen.fill(BGCOLOR)
+        self.draw_text(self.screen, "Press any button to start game", 48, BLUE, WIDTH / 4.3, HEIGHT / 2.2)
+        pg.display.flip()
+        self.wait_for_key()
 
     def wait_for_key(self):
-         waiting =  True
-         while waiting:
-              self.clock.tick(FPS)
-              for event in pg.event.get():
-                    if event.type == pg.QUIT:
-                        waiting = False
-                        self.quit()
-                    if event.type == pg.KEYUP:
-                        waiting = False
+        # wait for a key press to proceed
+        waiting = True
+        while waiting:
+            self.clock.tick(FPS)
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    waiting = False
+                    self.quit()
+                if event.type == pg.KEYUP:
+                    waiting = False
 
+# main part of the program
 screen = pg.display.set_mode((WIDTH, HEIGHT))
-
 g = Game()
 g.show_start_screen()
 while True:
     g.new()
     g.run()
-    # g.show_go_screen
