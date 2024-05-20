@@ -3,7 +3,7 @@ from settings import *
 from settings import TITLE, TILESIZE, BROWN, GREEN, LIGHTGREY, BGCOLOR, BLUE, BLACK
 from random import randint
 from sprites import *
-from sprites import Wall, PowerUp, Mob2, Player
+from sprites import Wall, PowerUp, Mob2, Player, Hostage
 import sys
 from os import path
 
@@ -50,7 +50,8 @@ class Game:
                 elif tile == 'M':
                     Mob2(self, col, row)  # place mob
                 elif tile == 'H':
-                    (self, col, row) # place homer   
+                    Hostage(self, col, row)  # place hostage
+    
     def run(self):
         # game loop
         self.playing = True
@@ -70,6 +71,13 @@ class Game:
         # check for collisions between the player and any mobs
         if pg.sprite.spritecollideany(self.player, self.mobs):
             self.playing = False  # end game on collision
+
+    def check_power_up_collisions(self):
+        hits = pg.sprite.spritecollide(self.player, self.power_ups, True)
+        if hits:
+            print("Power-up collision detected!")  # Debugging statement
+        for hit in hits:
+            hit.apply_to(self.player)
 
     def draw(self):
         # draw the background and all sprites

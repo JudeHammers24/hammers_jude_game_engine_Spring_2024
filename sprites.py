@@ -34,26 +34,8 @@ class Player(pg.sprite.Sprite):
         self.vx, self.vy = 0,0
         self.x = x * TILESIZE
         self.y = y * TILESIZE
-
-
-    def update(self):
-        self.get_keys()
-        self.x += self.vx * self.game.dt
-        self.y += self.vy * self.game.dt
-        self.rect.x = self.x
-        self.collide_with_walls('x')
-        self.rect.y = self.y
-        self.collide_with_walls('y')
-        self.collide_with_groups('x')
-        self.collide_with_groups('y')
-
-
-    def collide_with_groups(self, dir, screen):
-        if dir == 'x':
-            hits = pg.sprite.spritecollide(self, self.game.mobs, False)
-            if hits:
-                self.show_start_screen(screen)
-
+    
+    
     def get_keys(self):
         self.vx, self.vy = 0, 0
         keys = pg.key.get_pressed()
@@ -69,8 +51,49 @@ class Player(pg.sprite.Sprite):
         if self.vx != 0 and self.vy != 0:
             self.vx *= 0.7071  # roughly 1/sqrt(2)
             self.vy *= 0.7071
-    
 
+    def apply_power_up(self):
+        # Increase speed by a fraction
+        self.speed *= self.power_up_multiplier
+        self.speed = min(self.speed, self.max_speed)
+
+    def update(self):
+        self.get_keys()
+        self.x += self.vx * self.game.dt
+        self.y += self.vy * self.game.dt
+        self.rect.x = self.x
+        self.collide_with_walls('x')
+        self.rect.y = self.y
+        self.collide_with_walls('y')
+    
+        # Check for collisions with mobs
+        mob_hits = pg.sprite.spritecollide(self, self.game.mobs, False)
+        if mob_hits:
+            # Perform actions related to mob collisions
+            self.game.show_start_screen(self.game.screen)  # Assuming show_start_screen requires a screen parameter
+
+        # Check for collisions with power-ups
+        power_up_hits = pg.sprite.spritecollide(self, self.game.power_ups, True)
+        if power_up_hits:
+            print("Power-up collision detected")
+            # Perform actions related to power-up collisions
+            for power_up in power_up_hits:
+                self.power_up.apply_to()
+
+    
+    def collide_with_power_ups(self):
+        hits = pg.sprite.spritecollide(self, self.game.power_ups, True)
+        if hits:
+            print("Power-up collision detected!")  # Debugging statement
+        for hit in hits:
+            hit.apply_to(self)
+    
+    def collide_with_groups(self, dir, screen):
+        if dir == 'x':
+            hits = pg.sprite.spritecollide(self, self.game.mobs, False)
+            if hits:
+                self.show_start_screen(screen)
+    
 
     def update(self):
         self.get_keys()
@@ -111,10 +134,6 @@ class Player(pg.sprite.Sprite):
             self.rect.bottom = 0  # Move player to the top
 
         
-    def apply_power_up(self):
-        # Increase speed by a fraction
-        self.speed *= self.power_up_multiplier
-        self.speed = min(self.speed, self.max_speed)
     
    
     def draw_text(self, surface, text, size, color, x, y):
@@ -125,23 +144,6 @@ class Player(pg.sprite.Sprite):
          text_rect.topleft = (x,y)
          surface.blit(text_surface, text_rect)
         
-
-        
-            
-    
-    def collide_with_groups(self, dir):
-        if dir == 'x':
-            hits = pg.sprite.spritecollide(self, self.game.power_ups, False)
-            if hits:
-                self.apply_power_up()
-                hits[0].kill()
-
-    # def show_start_screen(self, screen):
-    #      screen.fill(BGCOLOR)
-    #      self.draw_text(screen, "Press any button to start game", 48, BLUE, WIDTH/4.3, HEIGHT/2.2)
-    #      pg.display.flip()
-    #      self.wait_for_key()
-    
 
 class Wall(pg.sprite.Sprite):
     def __init__(self, game, x, y):
@@ -176,6 +178,13 @@ class PowerUp(pg.sprite.Sprite):
         self.y = y
         self.rect.x = x * TILESIZE
         self.rect.y = y * TILESIZE
+
+    def apply_to(self, player):
+        # Apply a speed boost to the player
+        print("Power-up applied!")  # Debugging statement
+        player.speed *= player.power_up_multiplier
+        player.speed = min(player.speed, player.max_speed)
+        print(f"Player speed: {player.speed}")  # Debugging statement
 
 def collide_with_walls(sprite, group, dir):
     if dir == 'x':
@@ -217,7 +226,7 @@ class Mob2(pg.sprite.Sprite):
         self.rot = 0
         self.chase_distance = 500
         # added
-        self.speed = 200
+        self.speed = 400
         self.chasing = False
         # self.health = MOB_HEALTH
     def sensor(self):
@@ -244,13 +253,14 @@ class Mob2(pg.sprite.Sprite):
             # if self.health <= 0:
             #     self.kill()
 
-class Homer(pg.sprite.Sprite):
+class Hostage(pg.sprite.Sprite):
     def __init__(self, game, x, y):
         self.groups = game.all_sprites, game.power_ups
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
         # Load the image for Homer
-        self.image = pg.image.load("savemejebus.png").convert_alpha()  
+        self.image = pg.Surface((TILESIZE, TILESIZE))
+        self.image.fill(YELLOW)
         self.rect = self.image.get_rect()
         self.x = x
         self.y = y
