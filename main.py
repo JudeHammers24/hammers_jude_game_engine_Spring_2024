@@ -3,7 +3,7 @@ from settings import *
 from settings import TITLE, TILESIZE, BROWN, GREEN, LIGHTGREY, BGCOLOR, BLUE, BLACK
 from random import randint
 from sprites import *
-from sprites import Wall, PowerUp, Mob2, Player, Hostage
+from sprites import Wall, PowerUp, Mob2, Player, Hostage, DropPoint
 import sys
 from os import path
 
@@ -23,6 +23,8 @@ class Game:
         pg.display.set_caption(TITLE)  # name the game title
         self.clock = pg.time.Clock()  # create a clock object to manage frame rate
         self.load_data()  # load game data from files on surface
+        self.carrying_hostage = False
+        self.player_group = pg.sprite.Group()  # create a group for the player
 
     def load_data(self):
         # load map data from the map.txt text file
@@ -38,6 +40,8 @@ class Game:
         self.walls = pg.sprite.Group()
         self.mobs = pg.sprite.Group()
         self.power_ups = pg.sprite.Group()
+        self.hostages = pg.sprite.Group()
+        self.drop_points = pg.sprite.Group()
         # parse the map data
         for row, tiles in enumerate(self.map_data):
             for col, tile in enumerate(tiles):
@@ -45,21 +49,33 @@ class Game:
                     Wall(self, col, row)  # place wall
                 elif tile == 'P':
                     self.player = Player(self, col, row)  # create player
+                    self.player_group.add(self.player)  # add player to player group
                 elif tile == 'C':
                     PowerUp(self, col, row)  # place power-up
                 elif tile == 'M':
                     Mob2(self, col, row)  # place mob
                 elif tile == 'H':
                     Hostage(self, col, row)  # place hostage
-    
+                elif tile == 'D':
+                    DropPoint(self, col, row)  # place drop point
+
+    def show_end_screen(self):
+        # Display the "You won!" screen
+        self.screen.fill(BGCOLOR)
+        self.draw_text(self.screen, "You won!", 48, BLUE, WIDTH / 3.5, HEIGHT / 2)  # draw "You won!" text
+        self.draw_text(self.screen, "Press any key to play again", 22, BLACK, WIDTH / 4, HEIGHT * 3 / 4)  # draw play again text
+        pg.display.flip()
+        self.wait_for_key()
+
     def run(self):
         # game loop
         self.playing = True
         while self.playing:
             self.dt = self.clock.tick(FPS) / 1000  # manage game time
             self.events()  # process game events
-            self.update()  # update game 
+            self.update()  # update game
             self.draw()  # draw the game
+        self.show_end_screen()  # show the end screen after the game loop ends
 
     def quit(self):
         pg.quit()
@@ -71,13 +87,15 @@ class Game:
         # check for collisions between the player and any mobs
         if pg.sprite.spritecollideany(self.player, self.mobs):
             self.playing = False  # end game on collision
+        # hostage_pickup_hits = pg.sprite.spritecollide(self.player, self.hostages, False)
+        # if hostage_pickup_hits and not self.player.carrying_hostage:
+        #     self.player.pick_up_hostage()
 
-    def check_power_up_collisions(self):
-        hits = pg.sprite.spritecollide(self.player, self.power_ups, True)
-        if hits:
-            print("Power-up collision detected!")  # Debugging statement
-        for hit in hits:
-            hit.apply_to(self.player)
+    def events(self):
+        # handle all events from the user and system
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                self.quit()
 
     def draw(self):
         # draw the background and all sprites
@@ -101,12 +119,6 @@ class Game:
         text_rect = text_surface.get_rect()
         text_rect.topleft = (x, y)
         surface.blit(text_surface, text_rect)
-
-    def events(self):
-        # handle all events from the user and system
-        for event in pg.event.get():
-            if event.type == pg.QUIT:
-                self.quit()
 
     def show_start_screen(self):
         # display the start screen

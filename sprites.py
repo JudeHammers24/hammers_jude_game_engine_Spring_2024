@@ -34,7 +34,7 @@ class Player(pg.sprite.Sprite):
         self.vx, self.vy = 0,0
         self.x = x * TILESIZE
         self.y = y * TILESIZE
-    
+        self.carrying_hostage = False
     
     def get_keys(self):
         self.vx, self.vy = 0, 0
@@ -52,10 +52,10 @@ class Player(pg.sprite.Sprite):
             self.vx *= 0.7071  # roughly 1/sqrt(2)
             self.vy *= 0.7071
 
-    def apply_power_up(self):
-        # Increase speed by a fraction
-        self.speed *= self.power_up_multiplier
-        self.speed = min(self.speed, self.max_speed)
+    # def apply_power_up(self):
+    #     # Increase speed by a fraction
+    #     self.speed *= self.power_up_multiplier
+    #     self.speed = min(self.speed, self.max_speed)
 
     def update(self):
         self.get_keys()
@@ -66,27 +66,30 @@ class Player(pg.sprite.Sprite):
         self.rect.y = self.y
         self.collide_with_walls('y')
     
-        # Check for collisions with mobs
-        mob_hits = pg.sprite.spritecollide(self, self.game.mobs, False)
-        if mob_hits:
-            # Perform actions related to mob collisions
-            self.game.show_start_screen(self.game.screen)  # Assuming show_start_screen requires a screen parameter
+        # Check for collision with the hostage and pick it up
+        if not self.carrying_hostage:
+            hostage_pickup_hits = pg.sprite.spritecollide(self, self.game.hostages, True)
+            if hostage_pickup_hits:
+                self.pick_up_hostage()
 
-        # Check for collisions with power-ups
-        power_up_hits = pg.sprite.spritecollide(self, self.game.power_ups, True)
-        if power_up_hits:
-            print("Power-up collision detected")
-            # Perform actions related to power-up collisions
-            for power_up in power_up_hits:
-                self.power_up.apply_to()
+        # Check for collision with the drop-off point and drop the hostage
+        if self.carrying_hostage:
+            drop_point_hits = pg.sprite.spritecollide(self, self.game.drop_points, False)
+            if drop_point_hits:
+                self.game.playing = False
+                
+    def pick_up_hostage(self):
+        self.carrying_hostage = True
 
+    def drop_hostage(self):
+        self.carrying_hostage = False
     
-    def collide_with_power_ups(self):
-        hits = pg.sprite.spritecollide(self, self.game.power_ups, True)
-        if hits:
-            print("Power-up collision detected!")  # Debugging statement
-        for hit in hits:
-            hit.apply_to(self)
+    # def collide_with_power_ups(self):
+    #     hits = pg.sprite.spritecollide(self, self.game.power_ups, True)
+    #     if hits:
+    #         print("Power-up collision detected!")  # Debugging statement
+    #     for hit in hits:
+    #         hit.apply_to(self)
     
     def collide_with_groups(self, dir, screen):
         if dir == 'x':
@@ -255,14 +258,32 @@ class Mob2(pg.sprite.Sprite):
 
 class Hostage(pg.sprite.Sprite):
     def __init__(self, game, x, y):
-        self.groups = game.all_sprites, game.power_ups
+        self.groups = game.all_sprites, game.hostages
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
-        # Load the image for Homer
         self.image = pg.Surface((TILESIZE, TILESIZE))
         self.image.fill(YELLOW)
         self.rect = self.image.get_rect()
-        self.x = x
-        self.y = y
+        self.rect.x = x * TILESIZE
+        self.rect.y = y * TILESIZE
+
+    def update(self):
+        # Check if the player collides with the hostage
+        hits = pg.sprite.spritecollide(self, self.game.player_group, False)
+        if hits:
+            # If the player is not already carrying a hostage, pick it up
+            if not self.game.player.carrying_hostage:
+                self.game.player.pick_up_hostage()
+                # Remove the hostage sprite from the game
+                self.kill()
+
+class DropPoint(pg.sprite.Sprite):
+    def __init__(self, game, x, y):
+        self.groups = game.all_sprites, game.drop_points
+        pg.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = pg.Surface((TILESIZE, TILESIZE))
+        self.image.fill(BLUE)  # Different color to distinguish it from walls/hostages
+        self.rect = self.image.get_rect()
         self.rect.x = x * TILESIZE
         self.rect.y = y * TILESIZE
